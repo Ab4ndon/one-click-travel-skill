@@ -1,8 +1,12 @@
 # One Click Travel Skill
 
+Language: [English](#english) | [中文](#中文)
+
+## English
+
 `one-click-travel` is a Codex skill for generating a shareable Chinese travel-guide HTML page from a destination city. It combines map markers, Xiaohongshu-informed attraction planning, Meituan hotel prices, deep links, and a responsive HTML template.
 
-## What It Generates
+### What It Generates
 
 - A self-contained HTML travel guide.
 - Live AMap markers for attractions, hotels, and transit points.
@@ -11,7 +15,7 @@
 - Mobile-friendly fallback links for Meituan, Xiaohongshu, and normal web pages.
 - Optional local or EdgeOne deployment flow.
 
-## Repository Layout
+### Repository Layout
 
 ```text
 one-click-travel/
@@ -31,7 +35,7 @@ one-click-travel/
     └── geocode_amap.py
 ```
 
-## Installation
+### Installation
 
 Copy this folder into your Codex skills directory:
 
@@ -41,9 +45,9 @@ Copy-Item -Recurse . "$env:USERPROFILE\.codex\skills\one-click-travel"
 
 Restart Codex after installation so the skill can be discovered.
 
-## Required Configuration
+### Required Configuration
 
-### AMap
+#### AMap
 
 Live map pages require a 高德 Web JS API Key. If your AMap application enables security verification, also provide `securityJsCode`.
 
@@ -52,7 +56,7 @@ Live map pages require a 高德 Web JS API Key. If your AMap application enables
 
 If no key is available, the skill can generate a static coordinate-list version only after the user explicitly chooses to skip the live map.
 
-### Meituan Travel
+#### Meituan Travel
 
 Meituan is optional but preferred for real hotel prices, ratings, and links.
 
@@ -60,7 +64,7 @@ Meituan is optional but preferred for real hotel prices, ratings, and links.
 - The skill checks for a configured token before using `meituan-travel`.
 - If Meituan is unavailable or times out, the guide falls back to public hotel sources and omits Meituan deep links.
 
-### Xiaohongshu / Rednote
+#### Xiaohongshu / Rednote
 
 Xiaohongshu is optional but preferred for route popularity, attraction ordering, practical tips, and note links.
 
@@ -68,7 +72,7 @@ Xiaohongshu is optional but preferred for route popularity, attraction ordering,
 - If login is missing or expired, it asks the user to complete browser login.
 - If the user skips login, the skill continues with official/public sources.
 
-## Data Contract
+### Data Contract
 
 The generated guide uses the schema documented in:
 
@@ -84,7 +88,7 @@ Important defaults:
 - `hotel.rating`: prefer Meituan rating.
 - `confidence`: may be kept internally but is not rendered in the final HTML.
 
-## Script Usage
+### Script Usage
 
 Render HTML from a normalized trip JSON file:
 
@@ -116,10 +120,10 @@ Fill missing coordinates with AMap geocoding:
 python scripts\geocode_amap.py --input trip-data.json --output trip-data.json --amap-key YOUR_AMAP_KEY --city 杭州
 ```
 
-## Typical Prompt
+### Typical Prompt
 
 ```text
-使用 $one-click-travel 帮我制作一个杭州旅游攻略
+Use $one-click-travel to create a Hangzhou travel guide.
 ```
 
 The skill will:
@@ -131,9 +135,148 @@ The skill will:
 5. Verify factual fields with official or public sources.
 6. Generate the final HTML file.
 
-## Notes
+### Notes
 
 - Do not commit generated guide pages, screenshots, or local data exports unless you intentionally want examples in the repository.
 - Do not commit API keys, Meituan tokens, Xiaohongshu cookies, or generated credential files.
 - Prices, ratings, opening status, and booking rules should always be treated as real-time platform data.
+
+## 中文
+
+`one-click-travel` 是一个用于生成中文旅游攻略 HTML 页面 的 Codex skill。用户给出目的地城市后，它会结合高德地图、美团酒店实时价格、小红书攻略路线、景点/酒店卡片和 App/网页跳转链接，生成一个可分享、可本地打开的旅行攻略页。
+
+### 可以生成什么
+
+- 一个自包含的 HTML 旅游攻略页面。
+- 高德实时地图，标记景点、酒店和交通点位。
+- 默认查询明天入住 1 晚的美团酒店价格。
+- 结合小红书笔记路线热度生成景点推荐，再用官方/公开来源核验地址、票价、预约规则等事实信息。
+- 移动端支持美团、小红书 App 唤起；失败时 fallback 到网页。
+- 可选的本地输出或 EdgeOne 部署流程。
+
+### 仓库结构
+
+```text
+one-click-travel/
+├── SKILL.md
+├── assets/
+│   └── html-template/template.html
+├── optional-skills/
+│   ├── meituan-travel/SKILL.md
+│   └── rednote-skill/SKILL.md
+├── references/
+│   └── data-schema.md
+└── scripts/
+    ├── collect_attractions.py
+    ├── collect_hotels.py
+    ├── deploy_edgeone.py
+    ├── generate_html.py
+    └── geocode_amap.py
+```
+
+### 安装方法
+
+把整个目录复制到 Codex 的 skills 目录：
+
+```powershell
+Copy-Item -Recurse . "$env:USERPROFILE\.codex\skills\one-click-travel"
+```
+
+安装后重启 Codex，新的 skill 才会被发现。
+
+### 必要配置
+
+#### 高德地图
+
+默认生成实时地图页面，因此需要高德 Web JS API Key。如果你的高德应用开启了安全密钥校验，还需要提供 `securityJsCode`。
+
+- 创建 Key：https://console.amap.com/dev/key/app
+- Web JS API 准备说明：https://lbs.amap.com/api/javascript-api-v2/guide/abc/prepare
+
+如果没有 Key，只有在用户明确回复“跳过地图”后，skill 才会生成静态坐标清单版。
+
+#### 美团旅行
+
+美团不是硬依赖，但建议配置。配置后可以获取真实酒店价格、评分和美团链接。
+
+- Token 创建地址：https://developer.meituan.com/zh/v2/dev/token
+- skill 会先检查本地是否已配置美团 Token。
+- 如果美团不可用或接口超时，会降级使用公开酒店来源，并省略美团深链。
+
+#### 小红书 / Rednote
+
+小红书不是硬依赖，但建议登录。登录后可以用于判断路线热度、景点排序、实用贴士和攻略链接。
+
+- skill 会通过 `rednote-skill` 校验登录状态。
+- 如果登录失效，会引导用户在浏览器中重新登录。
+- 如果用户选择跳过登录，skill 会继续使用官方/公开来源。
+
+### 数据结构
+
+生成页面使用的标准数据结构见：
+
+```text
+references/data-schema.md
+```
+
+关键默认值：
+
+- `hotel_checkin_date`：默认使用用户时区的明天。
+- `hotel_checkout_date`：默认入住后一天，即 1 晚。
+- `hotel.price`：美团可用时保留美团返回的原始价格字符串。
+- `hotel.rating`：优先使用美团评分。
+- `confidence`：可在内部保留，但最终 HTML 页面不展示。
+
+### 脚本用法
+
+从标准化 JSON 生成 HTML：
+
+```powershell
+python scripts\generate_html.py --input trip-data.json --output output.html
+```
+
+只有在用户明确跳过实时地图时，才允许无高德 Key 渲染静态地图版：
+
+```powershell
+python scripts\generate_html.py --input trip-data.json --output output.html --allow-static-map
+```
+
+标准化景点候选数据：
+
+```powershell
+python scripts\collect_attractions.py --input raw-attractions.json --output attractions.json --city 杭州
+```
+
+标准化酒店候选数据：
+
+```powershell
+python scripts\collect_hotels.py --input raw-hotels.json --output hotels.json --city 杭州 --budget 300元左右
+```
+
+使用高德补全缺失坐标：
+
+```powershell
+python scripts\geocode_amap.py --input trip-data.json --output trip-data.json --amap-key YOUR_AMAP_KEY --city 杭州
+```
+
+### 典型用法
+
+```text
+使用 $one-click-travel 帮我制作一个杭州旅游攻略
+```
+
+skill 会：
+
+1. 解析目的地、预算和日期。
+2. 如果没有高德 Key，先引导用户提供。
+3. 美团已配置时，查询明天入住 1 晚的酒店实时价。
+4. 小红书已登录时，读取攻略笔记用于景点路线和热度判断。
+5. 用官方/公开来源核验地址、坐标、票价、开放和预约规则。
+6. 生成最终 HTML 页面。
+
+### 注意事项
+
+- 不建议把生成的攻略 HTML、截图或本地数据导出提交到仓库，除非你明确想保留示例。
+- 不要提交高德 Key、美团 Token、小红书 cookies 或任何凭证文件。
+- 酒店价格、评分、开放状态、预约规则都应视为实时平台数据，出行前需要再次核验。
 

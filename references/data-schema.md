@@ -29,6 +29,7 @@ Use this JSON shape between collection, geocoding, rendering, and deployment scr
       "image_url": "",
       "source_url": "https://example.com",
       "source_name": "官方旅游网站",
+      "meituan_url": "",
       "rednote_url": "",
       "rednote_note_id": "",
       "confidence": "medium"
@@ -64,6 +65,45 @@ Use this JSON shape between collection, geocoding, rendering, and deployment scr
       "confidence": "medium"
     }
   ],
+  "routes": [
+    {
+      "day": 1,
+      "title": "中轴线经典路线",
+      "summary": "酒店出发，串联核心景点后返回酒店。",
+      "color": "#667eea",
+      "points": [
+        {
+          "name": "示例酒店",
+          "position": [116.391, 39.895],
+          "day": 1,
+          "transport": null,
+          "type": "start"
+        },
+        {
+          "name": "天安门广场",
+          "position": [116.3978, 39.9034],
+          "day": 1,
+          "transport": "metro",
+          "transport_detail": "建议地铁优先，坐到天安门东站/天安门西站后步行；具体线路以实时导航为准。",
+          "transport_duration": "约30-60分钟",
+          "time": "09:00",
+          "stay_duration": "建议停留1-3小时",
+          "description": "适合首次到访的核心景点，建议提前确认预约。",
+          "ticket_price": "以平台实时信息为准",
+          "nearest_station": "天安门东站/天安门西站",
+          "tip": "热门预约点建议提前确认预约、安检和入场时间。",
+          "type": "attraction"
+        },
+        {
+          "name": "示例酒店",
+          "position": [116.391, 39.895],
+          "day": 1,
+          "transport": "taxi",
+          "type": "end"
+        }
+      ]
+    }
+  ],
   "sources": [
     {
       "name": "官方旅游网站",
@@ -89,3 +129,10 @@ Rules:
 - Hotel `rating` defaults to Meituan rating. Do not render non-Meituan ratings as the primary hotel rating unless the source is explicitly labeled.
 - Use source fields for every item that came from live research.
 - Store Meituan and Xiaohongshu links separately from generic source links so buttons can be shown conditionally.
+- `routes` is the independent route-planning data layer. Generate it by default from hotels, attractions, transit, and coordinates before rendering.
+- `RoutePoint.type` must be one of `start`, `end`, `transit`, or `attraction`.
+- `RoutePoint.transport` may be `metro`, `walk`, `ferry`, `tram`, `bus`, `taxi`, `train`, or `null`.
+- Route points may include `time`, `stay_duration`, `description`, `ticket_price`, `transport_detail`, `transport_duration`, `nearest_station`, and `tip`.
+- Attraction ticket prices should prefer Meituan exact returned prices and purchase links when Meituan is available; otherwise keep official/public prices or "以平台实时信息为准".
+- Prefer concrete transport suggestions such as metro line/station, train station, taxi, or walking when verified or reasonably inferable. If exact line/station data is unavailable, say to use real-time navigation rather than inventing exact lines.
+- Keep route points structured; do not encode route order only as prose.

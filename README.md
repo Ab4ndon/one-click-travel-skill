@@ -178,6 +178,7 @@ This demo shows the map-first layout, hotel cards, cross-city route guidance, at
 - Live AMap markers for attractions, hotels, and transit points.
 - Hotel cards with tomorrow's 1-night Meituan price by default.
 - Attraction cards informed by Xiaohongshu route notes, with official/public sources used for factual verification.
+- Default route planning page with day-by-day route data and AMap route visualization.
 - Mobile-friendly fallback links for Meituan, Xiaohongshu, and normal web pages.
 - Optional local EdgeOne CLI deployment without GitHub, returning a shareable preview token URL.
 
@@ -198,6 +199,7 @@ one-click-travel/
     ├── collect_attractions.py
     ├── collect_hotels.py
     ├── deploy_edgeone.py
+    ├── collect_routes.py
     ├── generate_html.py
     └── geocode_amap.py
 ```
@@ -313,8 +315,9 @@ The skill will:
 3. Use Meituan for tomorrow's hotel prices when configured.
 4. Use Xiaohongshu notes for route-informed attraction recommendations when logged in.
 5. Verify factual fields with official or public sources.
-6. Generate the final HTML file.
-7. Ask whether to publish to EdgeOne Pages; if requested, deploy with the local EdgeOne CLI and return the full preview token URL.
+6. Generate default route planning data and render the route timeline plus map route visualization.
+7. Generate the final HTML file.
+8. Ask whether to publish to EdgeOne Pages; if requested, deploy with the local EdgeOne CLI and return the full preview token URL.
 
 ### Notes
 

@@ -14,6 +14,7 @@ Generate a self-contained, polished Chinese travel guide HTML page for a destina
 - `optional-skills/rednote-skill/SKILL.md`: optional Xiaohongshu integration adapter; read only when notes, UGC highlights, or note deep links are useful.
 - `scripts/collect_attractions.py`: normalize attraction data from specialist skill output, web research, or user-provided JSON.
 - `scripts/collect_hotels.py`: normalize hotel data from specialist skill output, web research, or user-provided JSON.
+- `scripts/collect_routes.py`: build default day-by-day route data from normalized hotel and attraction coordinates.
 - `scripts/geocode_amap.py`: fill coordinates using AMap geocoding when a key is available.
 - `scripts/generate_html.py`: render the final HTML page from normalized JSON and `assets/html-template/template.html`.
 - `scripts/deploy_edgeone.py`: deploy a generated HTML page to EdgeOne Pages with the local EdgeOne CLI when the user wants a shareable EdgeOne preview URL.
@@ -31,6 +32,8 @@ Extract from the user request:
 - `hotel_checkout_date`: default to the day after `hotel_checkin_date` for a 1-night stay unless the user specifies nights/dates.
 - `hotel_count`: default 4.
 - `attraction_count`: default 10.
+- `route_count` / `trip_days`: optional; default to 2-3 days based on available attractions.
+- `route_style`: optional; infer conservatively from the request when present, otherwise default to a first-visit practical route.
 - `amap_key` and optional `amap_security_js_code`: required by default for the live map experience. Ask the user for these before HTML generation unless they explicitly choose to skip the live map.
 - Deployment preference: return the local HTML file by default, then ask whether to publish it to EdgeOne Pages with the local EdgeOne CLI. Do not require GitHub.
 
@@ -84,17 +87,19 @@ Use `references/data-schema.md` as the target shape. Prefer structured JSON betw
 2. Save or pass candidate JSON into `scripts/collect_attractions.py` and `scripts/collect_hotels.py`.
 3. If `amap_key` is missing and the user has not explicitly skipped the live map, ask for it before rendering.
 4. Run `scripts/geocode_amap.py` if coordinates are missing and an AMap key is available.
-5. Run `scripts/generate_html.py` with the normalized trip JSON.
-6. After the HTML is generated and validated, ask whether to publish it to EdgeOne Pages unless the user already requested deployment.
+5. Build route data by default. If `routes` is missing, run `scripts/collect_routes.py` or let `scripts/generate_html.py` derive default routes from hotel and attraction coordinates.
+6. Run `scripts/generate_html.py` with the normalized trip JSON.
+7. After the HTML is generated and validated, ask whether to publish it to EdgeOne Pages unless the user already requested deployment.
 
 Collect attractions:
 
 - Name, area/address, coordinates if available.
 - Rating/popularity when available.
-- Price or "免费/以现场为准".
+- Price or "免费/以现场为准". When `meituan-travel` is available, query attraction ticket price, rating/popularity, and purchase link during attraction collection; preserve the exact Meituan returned price string and link instead of approximating it.
 - Short reason to visit.
 - Image URL when reliable.
 - Source URL.
+- Meituan ticket/source URL when available.
 - Xiaohongshu note ID/link when available.
 - Confidence: `high`, `medium`, or `low`.
 
@@ -104,6 +109,7 @@ Attraction recommendations should be Xiaohongshu-informed by default when `redno
 - Extract note titles, route mentions, tags, and interaction counts.
 - Use Xiaohongshu to decide route popularity, practical tips, and card copy.
 - Use official/map sources to verify addresses, coordinates, ticket/opening/booking rules.
+- Use Meituan for attraction ticket prices and purchase links when available, then verify reservation/opening rules with official/map sources.
 - Render a `查看小红书攻略` link on attraction cards whenever a stable note URL is available.
 
 Collect hotels:
@@ -117,6 +123,20 @@ Collect hotels:
 - Confidence.
 
 For cross-city trips, also collect transit/port context when relevant, such as口岸、车站、机场、通关提示、首末班车 or estimated travel time. Use current sources if the detail may change.
+
+Collect routes:
+
+- Route planning is enabled by default; do not require the user to ask for it explicitly.
+- Store routes as structured data in `routes`, not only as rendered HTML or prose.
+- Use route points shaped as `{ name, position: [lng, lat], day, transport, type, time, stay_duration, transport_detail, transport_duration, nearest_station, tip }`.
+- `type` must be `start`, `end`, `transit`, or `attraction`.
+- `transport` may be `metro`, `walk`, `ferry`, `tram`, `bus`, `taxi`, `train`, or `null`.
+- Start from the first suitable hotel when coordinates are available, group nearby attractions into 2-3 day routes, and return to the hotel with an `end` point.
+- Prefer fewer cross-city hops per day. Put far attractions into their own day when possible.
+- Include practical time planning, stay duration, transport mode, approximate travel duration, nearest station when available, and short tips.
+- Include attraction ticket price or ticket tip in route points when available, sourced from Meituan first and official/public sources second.
+- Prefer concrete transport suggestions such as metro line/station, train station, taxi, or walking when verified or reasonably inferable.
+- Do not invent exact transit lines, stations, or travel times without a source/API; when unknown, write that the user should follow real-time map navigation.
 
 ## Source Rules
 
@@ -134,7 +154,18 @@ Create one HTML file named:
 
 The page should include:
 
-- Compact top navigation: 酒店 | 景点 | 地图 | 交通/贴士 when relevant.
+- Compact top navigation: 酒店 | 景点 | 路线规划 | 地图/交通贴士 when relevant. Place 路线规划 after 目的地景点.
+- A default 路线规划 page in the top navigation.
+- Route planning section:
+  - Day-by-day timeline cards sourced from `routes`.
+  - Live AMap route visualization when AMap is enabled.
+  - Route markers by `type`: start hotel, end/return, transit, attraction.
+  - Colored route lines per day, with `AMap.Polyline showDir: true` automatic direction arrows.
+  - Traffic mode icons at route segment midpoints, using emoji such as 🚇🚶🚢🚡🚌🚗🚄 in white circular chips with colored borders.
+  - Smooth route curves using 30-100 interpolated points, alternating curve direction by segment and applying sine-wave offsets.
+  - Gray dashed return lines.
+  - AMap toolbar, scale control, and automatic fit view.
+  - Static route-order fallback when AMap is unavailable or skipped.
 - Hero summary with destination, trip mode, budget, and last updated date.
 - Hotel section with selectable cards and links.
 - Attraction section with top items, images/placeholders, tags, source links, and optional Xiaohongshu links.
@@ -253,5 +284,7 @@ Before finishing:
 
 - Open or render the HTML when possible.
 - Check that navigation, deep-link fallbacks, and map fallback do not throw JavaScript errors.
+- Verify the route planning page is present by default, route data renders as a timeline, and route map/fallback does not throw JavaScript errors.
+- Verify route polylines are not attempted for points without coordinates.
 - Verify mobile layout does not overlap.
 - Confirm every external link either exists in collected data or is omitted.

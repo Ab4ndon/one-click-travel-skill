@@ -19,7 +19,7 @@
 - 默认查询明天入住 1 晚的美团酒店价格。
 - 结合小红书笔记路线热度生成景点推荐，再用官方/公开来源核验地址、票价、预约规则等事实信息。
 - 移动端支持美团、小红书 App 唤起；失败时 fallback 到网页。
-- 可选的本地输出或 EdgeOne 部署流程。
+- 可选用 EdgeOne CLI 从本地直接部署，不需要 GitHub；返回可分享的预览 token 链接。
 
 ### 仓库结构
 
@@ -32,7 +32,8 @@ one-click-travel/
 │   ├── meituan-travel/SKILL.md
 │   └── rednote-skill/SKILL.md
 ├── references/
-│   └── data-schema.md
+│   ├── data-schema.md
+│   └── edgeone-cli-deploy.md
 └── scripts/
     ├── collect_attractions.py
     ├── collect_hotels.py
@@ -126,6 +127,19 @@ python scripts\collect_hotels.py --input raw-hotels.json --output hotels.json --
 python scripts\geocode_amap.py --input trip-data.json --output trip-data.json --amap-key YOUR_AMAP_KEY --city 杭州
 ```
 
+使用 EdgeOne CLI 本地部署：
+
+```powershell
+python scripts\deploy_edgeone.py --html output.html --project-name hangzhou-travel
+```
+
+首次部署前需要安装并登录 EdgeOne CLI：
+
+```powershell
+npm install -g edgeone
+edgeone login
+```
+
 ### 典型用法
 
 ```text
@@ -140,6 +154,7 @@ skill 会：
 4. 小红书已登录时，读取攻略笔记用于景点路线和热度判断。
 5. 用官方/公开来源核验地址、坐标、票价、开放和预约规则。
 6. 生成最终 HTML 页面。
+7. 询问是否需要发布到 EdgeOne Pages；如果需要，用本地 EdgeOne CLI 部署并返回完整预览 token 链接。
 
 ### 注意事项
 
@@ -164,7 +179,7 @@ This demo shows the map-first layout, hotel cards, cross-city route guidance, at
 - Hotel cards with tomorrow's 1-night Meituan price by default.
 - Attraction cards informed by Xiaohongshu route notes, with official/public sources used for factual verification.
 - Mobile-friendly fallback links for Meituan, Xiaohongshu, and normal web pages.
-- Optional local or EdgeOne deployment flow.
+- Optional local EdgeOne CLI deployment without GitHub, returning a shareable preview token URL.
 
 ### Repository Layout
 
@@ -177,7 +192,8 @@ one-click-travel/
 │   ├── meituan-travel/SKILL.md
 │   └── rednote-skill/SKILL.md
 ├── references/
-│   └── data-schema.md
+│   ├── data-schema.md
+│   └── edgeone-cli-deploy.md
 └── scripts/
     ├── collect_attractions.py
     ├── collect_hotels.py
@@ -271,6 +287,19 @@ Fill missing coordinates with AMap geocoding:
 python scripts\geocode_amap.py --input trip-data.json --output trip-data.json --amap-key YOUR_AMAP_KEY --city 杭州
 ```
 
+Deploy locally with EdgeOne CLI:
+
+```powershell
+python scripts\deploy_edgeone.py --html output.html --project-name hangzhou-travel
+```
+
+Install and log in before the first deployment:
+
+```powershell
+npm install -g edgeone
+edgeone login
+```
+
 ### Typical Prompt
 
 ```text
@@ -285,6 +314,7 @@ The skill will:
 4. Use Xiaohongshu notes for route-informed attraction recommendations when logged in.
 5. Verify factual fields with official or public sources.
 6. Generate the final HTML file.
+7. Ask whether to publish to EdgeOne Pages; if requested, deploy with the local EdgeOne CLI and return the full preview token URL.
 
 ### Notes
 

@@ -16,7 +16,8 @@ Generate a self-contained, polished Chinese travel guide HTML page for a destina
 - `scripts/collect_hotels.py`: normalize hotel data from specialist skill output, web research, or user-provided JSON.
 - `scripts/geocode_amap.py`: fill coordinates using AMap geocoding when a key is available.
 - `scripts/generate_html.py`: render the final HTML page from normalized JSON and `assets/html-template/template.html`.
-- `scripts/deploy_edgeone.py`: deploy only when the repository already exposes an EdgeOne workflow/command; otherwise report the local file path.
+- `scripts/deploy_edgeone.py`: deploy a generated HTML page to EdgeOne Pages with the local EdgeOne CLI when the user wants a shareable EdgeOne preview URL.
+- `references/edgeone-cli-deploy.md`: EdgeOne CLI setup, login, deployment, and troubleshooting guidance; read when deployment is requested or when the user asks about publishing.
 
 ## Inputs
 
@@ -31,7 +32,7 @@ Extract from the user request:
 - `hotel_count`: default 4.
 - `attraction_count`: default 10.
 - `amap_key` and optional `amap_security_js_code`: required by default for the live map experience. Ask the user for these before HTML generation unless they explicitly choose to skip the live map.
-- Deployment target: EdgeOne/GitHub Actions if configured; otherwise return the local HTML file path.
+- Deployment preference: return the local HTML file by default, then ask whether to publish it to EdgeOne Pages with the local EdgeOne CLI. Do not require GitHub.
 
 Ask the user only for missing information that blocks the intended result. Do not ask for optional integrations before starting.
 
@@ -84,6 +85,7 @@ Use `references/data-schema.md` as the target shape. Prefer structured JSON betw
 3. If `amap_key` is missing and the user has not explicitly skipped the live map, ask for it before rendering.
 4. Run `scripts/geocode_amap.py` if coordinates are missing and an AMap key is available.
 5. Run `scripts/generate_html.py` with the normalized trip JSON.
+6. After the HTML is generated and validated, ask whether to publish it to EdgeOne Pages unless the user already requested deployment.
 
 Collect attractions:
 
@@ -219,9 +221,31 @@ Load the AMap script with the user's key. If the user explicitly skips credentia
 
 ## Deployment
 
-If the repository already has EdgeOne/GitHub Actions deployment configured, save the HTML in the expected published directory and follow the existing deployment workflow.
+Use EdgeOne CLI local deployment when the user asks for a public/shareable URL or agrees to publish after generation. Do not require GitHub for deployment. EdgeOne Pages direct-upload deployments can return tokenized preview URLs; treat the full token URL as the shareable output.
 
-If deployment is not configured, save the HTML locally and tell the user the absolute path. Do not claim a public URL was deployed unless the deployment actually completed.
+After generating the HTML, if the user did not mention deployment, ask:
+
+```text
+攻略页已经生成。是否要发布到 EdgeOne Pages 获取可分享的预览链接？我可以用 EdgeOne CLI 从本地直接部署，不需要 GitHub。
+```
+
+If the user agrees, read `references/edgeone-cli-deploy.md`, then run:
+
+```bash
+python scripts/deploy_edgeone.py --html output.html --project-name destination-travel
+```
+
+Deployment behavior:
+
+- Check whether the `edgeone` CLI is installed.
+- If missing, guide the user to install it with `npm install -g edgeone`.
+- If not logged in, guide the user to run `edgeone login` and complete the browser login.
+- Copy the generated HTML into a temporary publish directory as `index.html`.
+- Run `edgeone pages deploy <publish-dir> -n <project-name> -e production`.
+- Return the full EdgeOne preview token URL only when the CLI reports a successful deployment. Prefer the exact `EDGEONE_DEPLOY_URL=...` value from CLI/script output, keep `eo_token` and `eo_time`, and do not replace it with the bare `edgeone.cool` root domain.
+- When returning the link, note that it is a shareable preview URL and may expire; if visitors later see `401 UNAUTHORIZED`, generate a fresh Preview link from the EdgeOne console or redeploy.
+
+If deployment is not requested or cannot be completed, save the HTML locally and tell the user the absolute path. Do not claim a shareable EdgeOne URL was deployed unless the deployment actually completed and returned a full token URL.
 
 ## Validation
 

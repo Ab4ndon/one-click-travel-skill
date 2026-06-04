@@ -52,6 +52,15 @@ Copy-Item -Recurse . "$env:USERPROFILE\.codex\skills\one-click-travel"
 
 安装后重启对应 Agent，新的 skill 才会被发现。
 
+### 前置 Skill 安装
+
+使用 `one-click-travel` 前，请先安装并启用这两个强依赖 skill：
+
+- 美团旅行 skill：https://developer.meituan.com/zh/v2/dev/aiHub/skillManage/detail/12
+- 小红书 / Rednote skill：https://github.com/MrMao007/rednote-skills
+
+安装后重启对应 Agent，确认当前会话能发现 `meituan-travel` 和 `rednote-skill`，再开始生成攻略。
+
 ### 必要配置
 
 #### 高德地图
@@ -168,6 +177,15 @@ Copy-Item -Recurse . "$env:USERPROFILE\.codex\skills\one-click-travel"
 ```
 
 Restart your Agent after installation so the skill can be discovered.
+
+### Required Skills
+
+Install and enable these required skills before using `one-click-travel`:
+
+- Meituan Travel skill: https://developer.meituan.com/zh/v2/dev/aiHub/skillManage/detail/12
+- Xiaohongshu / Rednote skill: https://github.com/MrMao007/rednote-skills
+
+Restart your Agent after installation and confirm the current session can discover `meituan-travel` and `rednote-skill` before generating a guide.
 
 ### Required Configuration
 

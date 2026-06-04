@@ -1,15 +1,15 @@
 ---
 name: one-click-travel-rednote-adapter
-description: Optional adapter notes for using an installed rednote-skill inside one-click-travel. Read when Xiaohongshu notes, note IDs, UGC highlights, or app deep links are useful.
+description: Required adapter notes for using an installed rednote-skill inside one-click-travel. Read before collecting Xiaohongshu notes, note IDs, UGC highlights, or app deep links.
 ---
 
 # Rednote Adapter
 
-This is not a standalone replacement for the external `rednote-skill`. It documents how one-click-travel should use that skill when available, and how to degrade when it is missing or login is unavailable.
+This is not a standalone replacement for the external `rednote-skill`. It documents how one-click-travel must use that skill before generating a travel guide.
 
 ## Availability Check
 
-Use `rednote-skill` only if it appears in the current available skills/tools. If it is missing, use public web search snippets or omit Xiaohongshu-specific data. Do not block page generation.
+Require `rednote-skill` to appear in the current available skills/tools. If it is missing, pause and ask the user to install or enable it before continuing. Do not use public web search snippets as a replacement for required Xiaohongshu data.
 
 ## Login Prompt
 
@@ -18,10 +18,10 @@ Before using the external `rednote-skill`, validate login with its cookie valida
 ```text
 要获取小红书笔记内容和可跳转的攻略链接，需要先登录小红书。
 我会打开登录窗口，请在浏览器里完成登录，完成后关闭窗口；登录状态会保存在本地 cookies 文件中。
-如果你不想登录，也可以回复“跳过小红书”，我会用公开网页来源继续生成攻略。
+如果你暂时不想登录，可以回复“暂停小红书”，我会暂停生成；完成登录后再继续。
 ```
 
-Only run note search/extraction after login validation succeeds. If the user skips login, keep `rednote_url` and `rednote_note_id` empty unless a stable public note URL is found through normal browsing.
+Only run note search/extraction after login validation succeeds. If the user skips login, pause generation; do not keep `rednote_url` and `rednote_note_id` empty as a substitute for required Xiaohongshu data.
 
 ## Queries
 
@@ -55,7 +55,7 @@ Use Xiaohongshu content to enrich reasons to visit and practical tips. Do not us
 
 ## Attraction Recommendation Use
 
-For one-click-travel, Xiaohongshu should influence attraction selection and ordering when available:
+For one-click-travel, Xiaohongshu must influence attraction selection and ordering:
 
 - Search 3-6 notes for destination routes and must-visit attractions.
 - Dump the most relevant notes and extract repeated attraction names, route order, practical warnings, and tags.
@@ -63,10 +63,10 @@ For one-click-travel, Xiaohongshu should influence attraction selection and orde
 - Add tags such as `小红书热推`, `小红书路线`, or `小红书高频` only when supported by extracted notes.
 - Keep official/map sources for factual fields such as address, coordinates, price, opening rules, and booking requirements.
 
-## Fallback
+## Blocking Conditions
 
 When Rednote is unavailable or login is blocked:
 
-- Search the public web for Xiaohongshu result pages when browsing is available.
-- If only snippets are available, use them as inspiration and keep `rednote_note_id` empty.
-- Show only a generic source/search link when a stable note URL is not available.
+- Pause the one-click-travel workflow before attraction recommendation and route ordering.
+- Ask the user to install/enable `rednote-skill` or complete Xiaohongshu login.
+- Resume only after `rednote-skill` returns usable note, route, or attraction signal data.

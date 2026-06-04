@@ -1,17 +1,17 @@
 ---
 name: one-click-travel
-description: Generate a travel guide HTML page from a user's destination, including attractions, hotel recommendations, map markers, app/web deep links, and optional EdgeOne deployment. Use when the user asks to create or plan a city travel guide, single-city itinerary, cross-city trip such as Shenzhen to Hong Kong, attraction list, hotel shortlist, or shareable HTML travel page. Works with optional meituan-travel and rednote-skill integrations when available, but must still operate without them by using public web/search sources or user-provided data.
+description: Generate a travel guide HTML page from a user's destination, including attractions, hotel recommendations, map markers, app/web deep links, and optional EdgeOne deployment. Use when the user asks to create or plan a city travel guide, single-city itinerary, cross-city trip such as Shenzhen to Hong Kong, attraction list, hotel shortlist, or shareable HTML travel page. Requires meituan-travel and rednote-skill integrations for Meituan data and Xiaohongshu notes before generation.
 ---
 
 # One Click Travel
 
-Generate a self-contained, polished Chinese travel guide HTML page for a destination or cross-city trip. Treat `meituan-travel` and `rednote-skill` as optional accelerators, not hard dependencies.
+Generate a self-contained, polished Chinese travel guide HTML page for a destination or cross-city trip. Treat `meituan-travel` and `rednote-skill` as hard dependencies for data collection.
 
 ## Bundled Resources
 
 - `references/data-schema.md`: canonical JSON schema for collected data and generated page input.
-- `optional-skills/meituan-travel/SKILL.md`: optional Meituan integration adapter; read only when Meituan data is useful or available.
-- `optional-skills/rednote-skill/SKILL.md`: optional Xiaohongshu integration adapter; read only when notes, UGC highlights, or note deep links are useful.
+- `optional-skills/meituan-travel/SKILL.md`: required Meituan integration adapter for hotel, attraction, price, rating, and purchase-link data.
+- `optional-skills/rednote-skill/SKILL.md`: required Xiaohongshu integration adapter for notes, UGC highlights, route popularity, and note deep links.
 - `scripts/collect_attractions.py`: normalize attraction data from specialist skill output, web research, or user-provided JSON.
 - `scripts/collect_hotels.py`: normalize hotel data from specialist skill output, web research, or user-provided JSON.
 - `scripts/collect_routes.py`: build default day-by-day route data from normalized hotel and attraction coordinates.
@@ -37,7 +37,7 @@ Extract from the user request:
 - `amap_key` and optional `amap_security_js_code`: required by default for the live map experience. Ask the user for these before HTML generation unless they explicitly choose to skip the live map.
 - Deployment preference: return the local HTML file by default, then ask whether to publish it to EdgeOne Pages with the local EdgeOne CLI. Do not require GitHub.
 
-Ask the user only for missing information that blocks the intended result. Do not ask for optional integrations before starting.
+Ask the user only for missing information that blocks the intended result. Missing `meituan-travel`, `rednote-skill`, Meituan Token, or Xiaohongshu login blocks generation until resolved.
 
 For ordinary travel-guide requests, treat the map as part of the intended result. If AMap credentials are missing, pause after extracting the destination and ask:
 
@@ -56,26 +56,22 @@ Continue without credentials only when the user says to skip, says they do not h
 
 Before collecting data, inspect available skills/tools from current context.
 
-Use this priority order:
+Required specialist dependencies:
 
-1. **Installed specialist skills**
-   - If `meituan-travel` is available, use it for attractions, hotels, prices, ratings, and purchase links.
-   - If `rednote-skill` is available, use it for Xiaohongshu notes, user-generated highlights, images, note URLs, route popularity, and attraction ordering.
-   - Read the matching file under `optional-skills/` for query shapes and field mapping.
-   - If a specialist skill is available but not configured, guide the user through its setup before falling back:
-     - Meituan: ask for a Meituan Travel API Token and provide `https://developer.meituan.com/zh/v2/dev/token`.
-     - Xiaohongshu: validate login through the rednote skill; if login is missing or expired, run its manual login flow and ask the user to complete browser login.
-2. **General browsing/search fallback**
-   - If a specialist skill is unavailable, use available web/search/browser tools to find public pages for attractions, hotels, official tourism pages, map pages, OTA pages, and Xiaohongshu public result pages.
-   - Prefer official tourism sites, map/listing pages, hotel brand pages, major OTA listings, and recent reputable travel guides.
-3. **User-provided data fallback**
-   - If live search is unavailable or blocked, ask the user for links, hotel names, attraction names, or permission to generate a draft from model knowledge.
-   - Clearly label draft or unverified data in the output.
+1. `meituan-travel` must be available and configured. Use it for attractions, hotels, prices, ratings, and purchase links.
+2. `rednote-skill` must be available and logged in. Use it for Xiaohongshu notes, user-generated highlights, images, note URLs, route popularity, and attraction ordering.
+3. Read the matching file under `optional-skills/` for query shapes and field mapping.
 
-Never fail only because `meituan-travel` or `rednote-skill` is missing. Degrade gracefully:
+If a required dependency is missing or not configured, pause before data collection:
 
-- Missing Meituan data: omit Meituan deep links or use generic web links.
-- Missing Xiaohongshu data: omit note IDs/deep links or link to a search result page.
+- Missing `meituan-travel`: tell the user the Meituan travel skill is required and ask them to install/enable it before continuing.
+- Missing Meituan Token or authentication failure: ask for a Meituan Travel API Token and provide `https://developer.meituan.com/zh/v2/dev/token`; do not continue with public hotel sources as a substitute.
+- Missing `rednote-skill`: tell the user the Rednote/Xiaohongshu skill is required and ask them to install/enable it before continuing.
+- Missing or expired Xiaohongshu login: validate login through the rednote skill, run its manual login flow, and ask the user to complete browser login; do not continue with public snippets as a substitute.
+
+General browsing/search remains useful only for verifying official facts such as addresses, coordinates, opening rules, reservation requirements, and transit context. It must not replace the required Meituan or Xiaohongshu collection steps.
+
+For non-specialist gaps, degrade gracefully:
 - Missing exact coordinates: geocode through AMap if possible; otherwise use city-level coordinates and mark items as "待定位".
 - Missing images: use public image URLs only when source and license are acceptable; otherwise use CSS placeholders or ask the user for images.
 
@@ -83,7 +79,7 @@ Never fail only because `meituan-travel` or `rednote-skill` is missing. Degrade 
 
 Use `references/data-schema.md` as the target shape. Prefer structured JSON between steps:
 
-1. Gather raw candidate data with installed skills, web research, or user-provided links.
+1. Gather raw candidate data with the required `meituan-travel` and `rednote-skill` integrations, then verify factual details with web research or user-provided links where needed.
 2. Save or pass candidate JSON into `scripts/collect_attractions.py` and `scripts/collect_hotels.py`.
 3. If `amap_key` is missing and the user has not explicitly skipped the live map, ask for it before rendering.
 4. Run `scripts/geocode_amap.py` if coordinates are missing and an AMap key is available.
@@ -95,31 +91,31 @@ Collect attractions:
 
 - Name, area/address, coordinates if available.
 - Rating/popularity when available.
-- Price or "免费/以现场为准". When `meituan-travel` is available, query attraction ticket price, rating/popularity, and purchase link during attraction collection; preserve the exact Meituan returned price string and link instead of approximating it.
+- Price or "免费/以现场为准". Query `meituan-travel` for attraction ticket price, rating/popularity, and purchase link during attraction collection; preserve the exact Meituan returned price string and link instead of approximating it.
 - Short reason to visit.
 - Image URL when reliable.
 - Source URL.
-- Meituan ticket/source URL when available.
-- Xiaohongshu note ID/link when available.
+- Meituan ticket/source URL from `meituan-travel`.
+- Xiaohongshu note ID/link from `rednote-skill`.
 - Confidence: `high`, `medium`, or `low`.
 
-Attraction recommendations should be Xiaohongshu-informed by default when `rednote-skill` is available:
+Attraction recommendations must be Xiaohongshu-informed through `rednote-skill`:
 
 - Search 3-6 Xiaohongshu notes for `{destination} 必去景点 攻略`, `{destination} 两日游/三日游`, and important neighborhoods.
 - Extract note titles, route mentions, tags, and interaction counts.
 - Use Xiaohongshu to decide route popularity, practical tips, and card copy.
 - Use official/map sources to verify addresses, coordinates, ticket/opening/booking rules.
-- Use Meituan for attraction ticket prices and purchase links when available, then verify reservation/opening rules with official/map sources.
+- Use Meituan for attraction ticket prices and purchase links, then verify reservation/opening rules with official/map sources.
 - Render a `查看小红书攻略` link on attraction cards whenever a stable note URL is available.
 
 Collect hotels:
 
 - Name, area/address, coordinates if available.
-- Tomorrow's check-in price by default. Use the exact Meituan returned price string when Meituan data is available; do not replace it with approximate text.
-- Meituan rating by default. If Meituan is unavailable, leave rating empty or explicitly label the platform; do not show non-Meituan ratings as the primary hotel rating.
+- Tomorrow's check-in price by default. Use the exact Meituan returned price string; do not replace it with approximate text.
+- Meituan rating by default. Do not show non-Meituan ratings as the primary hotel rating.
 - Tags such as "近地铁", "连锁", "近口岸", "亲子", "高性价比".
 - Booking/source URL.
-- Meituan link when available.
+- Meituan link from `meituan-travel`.
 - Confidence.
 
 For cross-city trips, also collect transit/port context when relevant, such as口岸、车站、机场、通关提示、首末班车 or estimated travel time. Use current sources if the detail may change.
@@ -134,7 +130,7 @@ Collect routes:
 - Start from the first suitable hotel when coordinates are available, group nearby attractions into 2-3 day routes, and return to the hotel with an `end` point.
 - Prefer fewer cross-city hops per day. Put far attractions into their own day when possible.
 - Include practical time planning, stay duration, transport mode, approximate travel duration, nearest station when available, and short tips.
-- Include attraction ticket price or ticket tip in route points when available, sourced from Meituan first and official/public sources second.
+- Include attraction ticket price or ticket tip in route points, sourced from Meituan first and official/public sources second.
 - Prefer concrete transport suggestions such as metro line/station, train station, taxi, or walking when verified or reasonably inferable.
 - Do not invent exact transit lines, stations, or travel times without a source/API; when unknown, write that the user should follow real-time map navigation.
 
@@ -143,7 +139,7 @@ Collect routes:
 - Keep a small source list in the generated page footer or metadata.
 - Do not invent ratings, prices, coordinates, links, or note IDs.
 - If sources disagree, prefer recent official/listing sources and mention "价格/开放状态以平台实时信息为准".
-- Avoid scraping behind login walls. If Xiaohongshu requires login and `rednote-skill` is unavailable, use public search snippets or skip note details.
+- Avoid scraping behind login walls. If Xiaohongshu requires login or `rednote-skill` is unavailable, pause and ask the user to complete login or enable the required skill.
 
 ## HTML Output
 
@@ -168,7 +164,7 @@ The page should include:
   - Static route-order fallback when AMap is unavailable or skipped.
 - Hero summary with destination, trip mode, budget, and last updated date.
 - Hotel section with selectable cards and links.
-- Attraction section with top items, images/placeholders, tags, source links, and optional Xiaohongshu links.
+- Attraction section with top items, images/placeholders, tags, source links, and Xiaohongshu links from `rednote-skill`.
 - Map section:
   - Live AMap by default, using the user-provided API key.
   - Static fallback with coordinates/address list only when the user explicitly skips AMap or the key is unavailable after asking.

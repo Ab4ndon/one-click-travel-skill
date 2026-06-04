@@ -1,15 +1,15 @@
 ---
 name: one-click-travel-meituan-adapter
-description: Optional adapter notes for using an installed meituan-travel skill inside one-click-travel. Read when Meituan hotel, attraction, ticket, rating, price, or purchase-link data is useful.
+description: Required adapter notes for using an installed meituan-travel skill inside one-click-travel. Read before collecting Meituan hotel, attraction, ticket, rating, price, or purchase-link data.
 ---
 
 # Meituan Travel Adapter
 
-This is not a standalone replacement for the external `meituan-travel` skill. It documents how one-click-travel should use that skill when it is already available, and how to continue when it is not.
+This is not a standalone replacement for the external `meituan-travel` skill. It documents how one-click-travel must use that skill before generating a travel guide.
 
 ## Availability Check
 
-Use `meituan-travel` only if it appears in the current available skills/tools. If it is missing, skip directly to public web/search fallback. Do not ask the user to install it unless they explicitly want Meituan-only data.
+Require `meituan-travel` to appear in the current available skills/tools. If it is missing, pause and ask the user to install or enable it before continuing. Do not use public web/search results as a replacement for required Meituan data.
 
 ## Setup Prompt
 
@@ -22,7 +22,7 @@ https://developer.meituan.com/zh/v2/dev/token
 创建后把 Token 发给我，我会保存到本地配置后继续查询。Token 属于敏感凭证，我不会在最终页面或回复里明文展示。
 ```
 
-Save the token according to the installed `meituan-travel` skill's own instructions. If the user does not want to provide a Token, continue with public web/search fallback and leave `meituan_url` empty.
+Save the token according to the installed `meituan-travel` skill's own instructions. If the user does not want to provide a Token, pause generation; do not continue with public web/search fallback or leave `meituan_url` empty as a substitute.
 
 ## Queries
 
@@ -60,11 +60,10 @@ Map returned fields into `references/data-schema.md`:
 
 Never reconstruct masked prices such as `￥4XX起`. Preserve them exactly.
 
-## Fallback
+## Blocking Conditions
 
 When Meituan is unavailable or authentication fails:
 
-- Use hotel brand pages, major OTA pages, map listing pages, or official attraction pages.
-- Set `meituan_url` to an empty string.
-- Keep `source_url` as the public web source.
-- Use `confidence: "medium"` unless the source is official and current.
+- Pause the one-click-travel workflow before hotel or attraction collection.
+- Ask the user to install/enable `meituan-travel` or configure a valid Meituan Travel API Token.
+- Resume only after `meituan-travel` returns usable price, rating, and link data.

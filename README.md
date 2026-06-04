@@ -65,19 +65,19 @@ Copy-Item -Recurse . "$env:USERPROFILE\.codex\skills\one-click-travel"
 
 #### 美团旅行
 
-美团不是硬依赖，但建议配置。配置后可以获取真实酒店价格、评分和美团链接。
+美团是硬依赖，必须配置后才能生成攻略。配置后可以获取真实酒店价格、评分和美团链接。
 
 - Token 创建地址：https://developer.meituan.com/zh/v2/dev/token
 - skill 会先检查本地是否已配置美团 Token。
-- 如果美团不可用或接口超时，会降级使用公开酒店来源，并省略美团深链。
+- 如果美团不可用、Token 缺失或接口鉴权失败，skill 会暂停并要求完成配置，不会降级使用公开酒店来源替代。
 
 #### 小红书 / Rednote
 
-小红书不是硬依赖，但建议登录。登录后可以用于判断路线热度、景点排序、实用贴士和攻略链接。
+小红书是硬依赖，必须通过 `rednote-skill` 完成登录后才能生成攻略。登录后可以用于判断路线热度、景点排序、实用贴士和攻略链接。
 
 - skill 会通过 `rednote-skill` 校验登录状态。
 - 如果登录失效，会引导用户在浏览器中重新登录。
-- 如果用户选择跳过登录，skill 会继续使用官方/公开来源。
+- 如果用户选择跳过登录，skill 会暂停生成，不会继续使用官方/公开来源替代小红书数据。
 
 ### 数据结构
 
@@ -150,8 +150,8 @@ skill 会：
 
 1. 解析目的地、预算和日期。
 2. 如果没有高德 Key，先引导用户提供。
-3. 美团已配置时，查询明天入住 1 晚的酒店实时价。
-4. 小红书已登录时，读取攻略笔记用于景点路线和热度判断。
+3. 确认美团已配置并查询明天入住 1 晚的酒店实时价。
+4. 确认小红书已登录并读取攻略笔记用于景点路线和热度判断。
 5. 用官方/公开来源核验地址、坐标、票价、开放和预约规则。
 6. 生成最终 HTML 页面。
 7. 询问是否需要发布到 EdgeOne Pages；如果需要，用本地 EdgeOne CLI 部署并返回完整预览 token 链接。
@@ -227,19 +227,19 @@ If no key is available, the skill can generate a static coordinate-list version 
 
 #### Meituan Travel
 
-Meituan is optional but preferred for real hotel prices, ratings, and links.
+Meituan is required for real hotel prices, ratings, and links.
 
 - Token page: https://developer.meituan.com/zh/v2/dev/token
 - The skill checks for a configured token before using `meituan-travel`.
-- If Meituan is unavailable or times out, the guide falls back to public hotel sources and omits Meituan deep links.
+- If Meituan is unavailable, times out, or lacks a valid Token, the skill pauses for setup instead of falling back to public hotel sources.
 
 #### Xiaohongshu / Rednote
 
-Xiaohongshu is optional but preferred for route popularity, attraction ordering, practical tips, and note links.
+Xiaohongshu is required for route popularity, attraction ordering, practical tips, and note links.
 
 - The skill validates login through `rednote-skill`.
 - If login is missing or expired, it asks the user to complete browser login.
-- If the user skips login, the skill continues with official/public sources.
+- If the user skips login, the skill pauses generation instead of continuing with official/public sources as a substitute for Xiaohongshu data.
 
 ### Data Contract
 
@@ -253,7 +253,7 @@ Important defaults:
 
 - `hotel_checkin_date`: tomorrow in the user's timezone.
 - `hotel_checkout_date`: one day after check-in unless otherwise specified.
-- `hotel.price`: preserve the exact Meituan price string when available.
+- `hotel.price`: preserve the exact Meituan price string returned by `meituan-travel`.
 - `hotel.rating`: prefer Meituan rating.
 - `confidence`: may be kept internally but is not rendered in the final HTML.
 

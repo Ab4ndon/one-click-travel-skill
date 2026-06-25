@@ -37,6 +37,8 @@ one-click-travel/
 └── scripts/
     ├── collect_attractions.py
     ├── collect_hotels.py
+    ├── collect_routes.py
+    ├── collect_weather.py
     ├── deploy_edgeone.py
     ├── generate_html.py
     └── geocode_amap.py
@@ -70,7 +72,24 @@ Copy-Item -Recurse . "$env:USERPROFILE\.codex\skills\one-click-travel"
 - 创建 Key：https://console.amap.com/dev/key/app
 - Web JS API 准备说明：https://lbs.amap.com/api/javascript-api-v2/guide/abc/prepare
 
-如果没有 Key，只有在用户明确回复“跳过地图”后，skill 才会生成静态坐标清单版。
+如果没有 Key，只有在用户明确回复"跳过地图"后，skill 才会生成静态坐标清单版。
+
+#### 天气数据
+
+skill 会自动通过高德天气 API 获取目的地未来 3 天的天气预报，并在路线规划中根据天气调整行程（如雨天优先安排室内景点）。天气信息会以简洁格式显示在每日路线卡片中。
+
+- 天气 API 需要高德 **Web 服务** Key（与地图使用的 JS API Key 不同）。
+- 如果用户提供的 `amap_key` 仅支持 JS API，天气查询会返回 `USERKEY_PLAT_NOMATCH` 错误，此时 skill 会提示用户创建 Web 服务 Key 或跳过天气功能。
+- 创建 Web 服务 Key：https://console.amap.com/dev/key/app
+- 路线规划会根据天气智能调整：雨天优先室内景点，高温天提示防晒补水。
+
+#### 美食推荐
+
+skill 会在生成的攻略页面中展示目的地美食推荐，分为"正餐"和"小吃"两类，各以不同颜色的卡片和地图标记区分（🍽️ 正餐 / 🍜 小吃）。每张美食卡片包含餐厅名称、评分、人均价格、地址、简介、最近地铁站及步行时间、推荐菜和详情链接。
+
+- 美食数据来源优先使用小红书笔记中推荐的餐厅信息，结合网络搜索补充。
+- 如果已安装 `dianping-search` skill，可通过大众点评 API 获取更精准的餐厅评分、人均价格和推荐菜数据。
+- 美食数据结构遵循 `references/data-schema.md` 中的 `foods` 字段，支持 `category`（restaurant/snack）、`nearest_station`、`walk_time`、`summary`、`recommended_dishes` 等字段。
 
 #### 美团旅行
 
@@ -114,11 +133,14 @@ skill 会：
 
 1. 解析目的地、预算和日期。
 2. 如果没有高德 Key，先引导用户提供。
-3. 确认美团已配置并查询明天入住 1 晚的酒店实时价。
-4. 确认小红书已登录并读取攻略笔记用于景点路线和热度判断。
-5. 用官方/公开来源核验地址、坐标、票价、开放和预约规则。
-6. 生成最终 HTML 页面。
-7. 询问是否需要发布到 EdgeOne Pages；如果需要，用本地 EdgeOne CLI 部署并返回完整预览 token 链接。
+3. 通过高德天气 API 获取未来 3 天天气预报，生成天气出行贴士。
+4. 确认美团已配置并查询明天入住 1 晚的酒店实时价。
+5. 确认小红书已登录并读取攻略笔记用于景点路线、热度判断和美食推荐。
+6. 用官方/公开来源核验地址、坐标、票价、开放和预约规则。
+7. 生成路线规划数据，根据天气智能调整行程（雨天优先室内景点），渲染路线时间线和地图路线可视化。
+8. 渲染美食推荐区域，分类展示正餐和小吃卡片。
+9. 生成最终 HTML 页面。
+10. 询问是否需要发布到 EdgeOne Pages；如果需要，用本地 EdgeOne CLI 部署并返回完整预览 token 链接。
 
 ### 注意事项
 
@@ -162,8 +184,9 @@ one-click-travel/
 └── scripts/
     ├── collect_attractions.py
     ├── collect_hotels.py
-    ├── deploy_edgeone.py
     ├── collect_routes.py
+    ├── collect_weather.py
+    ├── deploy_edgeone.py
     ├── generate_html.py
     └── geocode_amap.py
 ```
@@ -197,6 +220,23 @@ Live map pages require a 高德 Web JS API Key. If your AMap application enables
 - Web JS API preparation guide: https://lbs.amap.com/api/javascript-api-v2/guide/abc/prepare
 
 If no key is available, the skill can generate a static coordinate-list version only after the user explicitly chooses to skip the live map.
+
+#### Weather Data
+
+The skill automatically fetches a 3-day weather forecast for the destination via the AMap Weather API and adjusts route planning accordingly (e.g., prioritizing indoor attractions on rainy days). Weather is displayed concisely in each daily route card.
+
+- The Weather API requires an AMap **Web Service** key (different from the JS API key used for maps).
+- If the user's `amap_key` only supports JS API, the weather query returns `USERKEY_PLAT_NOMATCH`. The skill will prompt the user to create a Web Service key or skip weather.
+- Create a Web Service key: https://console.amap.com/dev/key/app
+- Route planning adjusts intelligently: indoor attractions on rainy days, sun protection tips for hot days.
+
+#### Food Recommendations
+
+The generated guide includes a food recommendation section with two categories: "Restaurants" and "Snacks", each with distinct card colors and map markers (🍽️ restaurants / 🍜 snacks). Each food card includes restaurant name, rating, average price, address, summary, nearest subway station with walking time, recommended dishes, and a detail link.
+
+- Food data primarily comes from Xiaohongshu note recommendations, supplemented by web search.
+- If the `dianping-search` skill is installed, more precise restaurant ratings, prices, and dish data can be fetched via the Dianping API.
+- Food data follows the `foods` field in `references/data-schema.md`, supporting `category` (restaurant/snack), `nearest_station`, `walk_time`, `summary`, `recommended_dishes`, etc.
 
 #### Meituan Travel
 
@@ -240,12 +280,14 @@ The skill will:
 
 1. Extract destination, budget, and dates.
 2. Ask for AMap credentials if not already available.
-3. Use Meituan for tomorrow's hotel prices when configured.
-4. Use Xiaohongshu notes for route-informed attraction recommendations when logged in.
-5. Verify factual fields with official or public sources.
-6. Generate default route planning data and render the route timeline plus map route visualization.
-7. Generate the final HTML file.
-8. Ask whether to publish to EdgeOne Pages; if requested, deploy with the local EdgeOne CLI and return the full preview token URL.
+3. Fetch 3-day weather forecast via AMap Weather API and generate weather-based travel tips.
+4. Use Meituan for tomorrow's hotel prices when configured.
+5. Use Xiaohongshu notes for route-informed attraction recommendations and food data when logged in.
+6. Verify factual fields with official or public sources.
+7. Generate default route planning data, adjusting for weather (indoor attractions on rainy days), and render the route timeline plus map route visualization.
+8. Render the food recommendation section with categorized restaurant and snack cards.
+9. Generate the final HTML file.
+10. Ask whether to publish to EdgeOne Pages; if requested, deploy with the local EdgeOne CLI and return the full preview token URL.
 
 ### Notes
 

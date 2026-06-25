@@ -402,6 +402,91 @@ def hotel_card(item: dict[str, Any]) -> str:
     """
 
 
+def food_card(item: dict[str, Any]) -> str:
+    """Generate HTML for a food recommendation card."""
+    name = esc(item.get("name", ""))
+    rating = esc(item.get("rating", ""))
+    avg_price = esc(item.get("avg_price", ""))
+    address = esc(item.get("address", ""))
+    summary = esc(item.get("summary", ""))
+    nearest_station = esc(item.get("nearest_station", ""))
+    walk_time = esc(item.get("walk_time", ""))
+    recommended_dishes = item.get("recommended_dishes", [])
+    source_url = esc(item.get("source_url", ""))
+    category = item.get("category", "restaurant")
+
+    rating_html = f'<span class="food-rating">⭐ {rating}</span>' if rating else ""
+    price_html = f'<span class="food-price">💰 人均 ¥{avg_price}</span>' if avg_price else ""
+
+    summary_html = f'<div class="food-summary">{summary}</div>' if summary else ""
+    station_html = ""
+    if nearest_station:
+        walk_info = f'<span class="food-walk-time">步行{walk_time}</span>' if walk_time else ""
+        station_html = f'<span class="food-station">🚇 {nearest_station}</span>{walk_info}'
+
+    dishes_html = ""
+    if recommended_dishes:
+        dishes_list = "".join(f"<span class=\"food-dish\">{esc(dish)}</span>" for dish in recommended_dishes[:6])
+        dishes_html = f"<div class=\"food-dishes\"><span class=\"food-dishes-label\">推荐菜</span><div class=\"food-dishes-list\">{dishes_list}</div></div>"
+
+    link_html = f'<a href="{source_url}" target="_blank" class="food-link">查看详情</a>' if source_url else ""
+
+    return f"""
+    <div class="food-card {esc(category)}">
+      <div class="food-card-header">
+        <h3 class="food-name">{name}</h3>
+        {rating_html}
+      </div>
+      <div class="food-card-body">
+        {summary_html}
+        <div class="food-info">
+          <div class="food-price-row">{price_html}</div>
+          <div class="food-address">{address}</div>
+          {f'<div class="food-station-row">{station_html}</div>' if station_html else ''}
+        </div>
+        {dishes_html}
+        {link_html}
+      </div>
+    </div>
+    """
+
+
+def foods_html(data: dict[str, Any]) -> str:
+    """Generate HTML for food sections split by category."""
+    foods = data.get("foods", [])
+    restaurants = [f for f in foods if f.get("category") != "snack"]
+    snacks = [f for f in foods if f.get("category") == "snack"]
+
+    parts = []
+    if restaurants:
+        parts.append('<h2 class="food-section-title">🍽️ 正餐推荐</h2>')
+        parts.append(f'<div class="food-grid">{"".join(food_card(f) for f in restaurants)}</div>')
+    if snacks:
+        parts.append('<h2 class="food-section-title snack">🍜 小吃推荐</h2>')
+        parts.append(f'<div class="food-grid">{"".join(food_card(f) for f in snacks)}</div>')
+    if not parts:
+        parts.append('<p style="color:#667085;text-align:center;padding:40px 0;">暂无美食推荐数据</p>')
+    return "\n".join(parts)
+
+
+def food_map_data(data: dict[str, Any]) -> str:
+    """Generate map data for food recommendations."""
+    foods = data.get("foods", [])
+    points = []
+    for food in foods:
+        if food.get("lng") and food.get("lat"):
+            points.append({
+                "type": "美食",
+                "name": food.get("name", ""),
+                "lng": food.get("lng"),
+                "lat": food.get("lat"),
+                "address": food.get("address", ""),
+                "rating": food.get("rating", ""),
+                "avg_price": food.get("avg_price", ""),
+            })
+    return json.dumps(points, ensure_ascii=False)
+
+
 def map_data(data: dict[str, Any]) -> str:
     points = []
     for kind, items in (("景点", data.get("attractions", [])), ("酒店", data.get("hotels", [])), ("交通", data.get("transit", []))):
@@ -594,6 +679,7 @@ def render(data: dict[str, Any], template: str) -> str:
     routes = normalized_routes(data)
     weather_section = weather_html(data.get("weather", {}))
     weather_data = data.get("weather", {})
+    foods = data.get("foods", [])
     return (
         template.replace("{{TITLE}}", esc(title))
         .replace("{{DESTINATION}}", esc(destination))
@@ -607,6 +693,8 @@ def render(data: dict[str, Any], template: str) -> str:
         .replace("{{ROUTES_JSON}}", html.escape(json.dumps(routes, ensure_ascii=False), quote=False))
         .replace("{{ATTRACTIONS}}", "\n".join(attraction_card(item, index) for index, item in enumerate(data.get("attractions", []), start=1)))
         .replace("{{HOTELS}}", "\n".join(hotel_card(item) for item in data.get("hotels", [])))
+        .replace("{{FOODS}}", foods_html(data))
+        .replace("{{FOODS_JSON}}", html.escape(json.dumps(foods, ensure_ascii=False), quote=False))
         .replace("{{SOURCES}}", source_items or "<li>未记录外部来源，页面内容需人工核验。</li>")
         .replace("{{MAP_POINTS_JSON}}", html.escape(map_data(data), quote=False))
         .replace("{{AMAP_KEY}}", esc(amap_key))

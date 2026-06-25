@@ -137,7 +137,23 @@ Use this JSON shape between collection, geocoding, rendering, and deployment scr
       }
     ],
     "tips": ["天气预报良好，适合户外活动"]
-  }
+  },
+  "foods": [
+    {
+      "name": "餐厅名称",
+      "city": "香港",
+      "address": "详细地址",
+      "lng": 114.17,
+      "lat": 22.28,
+      "rating": "4.5",
+      "avg_price": "120",
+      "review_count": "326",
+      "recommended_dishes": ["招牌菜1", "招牌菜2"],
+      "category": "restaurant",
+      "source_url": "https://www.dianping.com/shop/xxxxx",
+      "shop_id": "xxxxx"
+    }
+  ]
 }
 ```
 

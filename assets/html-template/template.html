@@ -894,6 +894,326 @@
     @media (max-width: 768px) {
       .route-weather-day-body { flex-direction: column; align-items: flex-start; }
     }
+
+    /* Food Section */
+    #food-map-container {
+      width: 100%;
+      height: 680px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+      overflow: hidden;
+      position: relative;
+      margin-bottom: 25px;
+    }
+    .food-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 24px;
+      margin-top: 20px;
+    }
+    .food-section-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #333;
+      margin: 40px 0 20px 0;
+      padding-left: 15px;
+      border-left: 5px solid #ff6b35;
+    }
+    .food-section-title.snack {
+      border-left-color: #10b981;
+    }
+    /* Restaurant cards - Orange theme */
+    .food-card.restaurant {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      border: 1px solid #f0f0f0;
+    }
+    .food-card.restaurant:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 32px rgba(255, 107, 53, 0.15);
+    }
+    .food-card.restaurant .food-card-header {
+      background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+      padding: 20px;
+      color: white;
+      position: relative;
+    }
+    .food-card.restaurant .food-card-header::after {
+      content: "🍽️";
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 48px;
+      opacity: 0.2;
+    }
+    .food-card.restaurant .food-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: white;
+      margin: 0 0 8px 0;
+      line-height: 1.3;
+      padding-right: 60px;
+    }
+    .food-card.restaurant .food-rating {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(10px);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      color: white;
+    }
+    .food-card.restaurant .food-price {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      color: #92400e;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .food-card.restaurant .food-dish {
+      background: white;
+      color: #ff6b35;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1.5px solid #ffd4c3;
+      transition: all 0.2s ease;
+    }
+    .food-card.restaurant .food-dish:hover {
+      background: #ff6b35;
+      color: white;
+      border-color: #ff6b35;
+    }
+    .food-card.restaurant .food-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+      color: white;
+      text-decoration: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 650;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(255, 107, 53, 0.25);
+    }
+    .food-card.restaurant .food-link::before {
+      content: "🔗";
+      font-size: 16px;
+    }
+    .food-card.restaurant .food-link:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+    }
+    /* Snack cards - Green theme */
+    .food-card.snack {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      border: 1px solid #f0f0f0;
+    }
+    .food-card.snack:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 32px rgba(16, 185, 129, 0.15);
+    }
+    .food-card.snack .food-card-header {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      padding: 20px;
+      color: white;
+      position: relative;
+    }
+    .food-card.snack .food-card-header::after {
+      content: "🍜";
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 48px;
+      opacity: 0.2;
+    }
+    .food-card.snack .food-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: white;
+      margin: 0 0 8px 0;
+      line-height: 1.3;
+      padding-right: 60px;
+    }
+    .food-card.snack .food-rating {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(10px);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      color: white;
+    }
+    .food-card.snack .food-price {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+      color: #065f46;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .food-card.snack .food-dish {
+      background: white;
+      color: #10b981;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1.5px solid #a7f3d0;
+      transition: all 0.2s ease;
+    }
+    .food-card.snack .food-dish:hover {
+      background: #10b981;
+      color: white;
+      border-color: #10b981;
+    }
+    .food-card.snack .food-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      text-decoration: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 650;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    }
+    .food-card.snack .food-link::before {
+      content: "🔗";
+      font-size: 16px;
+    }
+    .food-card.snack .food-link:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    }
+    /* Common styles */
+    .food-card-body {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .food-summary {
+      color: #4b5563;
+      font-size: 14px;
+      line-height: 1.7;
+      padding: 12px 14px;
+      background: #f9fafb;
+      border-radius: 8px;
+      border-left: 3px solid #d1d5db;
+    }
+    .food-station-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .food-station {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .food-walk-time {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #f0fdf4;
+      color: #15803d;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .food-info {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .food-price-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .food-address {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      color: #667085;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .food-address::before {
+      content: "📍";
+      flex-shrink: 0;
+      font-size: 16px;
+    }
+    .food-dishes {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 16px;
+      background: #fafafa;
+      border-radius: 12px;
+    }
+    .food-dishes-label {
+      color: #333;
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .food-dishes-label::before {
+      content: "🔥";
+      font-size: 16px;
+    }
+    .food-dishes-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    @media (max-width: 768px) {
+      .food-grid { grid-template-columns: 1fr; }
+      #food-map-container { height: 460px; }
+    }
   </style>
 </head>
 <body>
@@ -903,6 +1223,7 @@
       <ul class="navbar-menu">
         <li class="navbar-item active" id="nav-hotels" onclick="showPage('hotels')">酒店选择</li>
         <li class="navbar-item" id="nav-attractions" onclick="showPage('attractions')">目的地景点</li>
+        <li class="navbar-item" id="nav-foods" onclick="showPage('foods')">美食推荐</li>
         <li class="navbar-item" id="nav-route" onclick="showPage('route')">路线规划</li>
         <li class="navbar-item" id="nav-sources" onclick="showPage('sources')">数据来源</li>
       </ul>
@@ -950,6 +1271,26 @@
     <div class="attractions-grid">{{ATTRACTIONS}}</div>
   </div>
 
+  <div class="page" id="page-foods">
+    <section class="attractions-hero">
+      <h1>{{DESTINATION}}美食推荐</h1>
+      <p>按评分、口碑和推荐菜精选 | 数据来源：大众点评</p>
+    </section>
+    <main class="container">
+      <div id="food-map-container">
+        <div class="map-fallback">美食地图加载中...</div>
+        <div class="legend" id="food-map-legend">
+          <h3>美食地图</h3>
+          <div class="legend-item">正在读取餐厅位置...</div>
+        </div>
+      </div>
+      <section class="info-panel">
+        <h2 class="section-title">餐厅推荐</h2>
+        <div class="food-grid">{{FOODS}}</div>
+      </section>
+    </main>
+  </div>
+
   <div class="page" id="page-route">
     <header class="header">
       <h1>{{TITLE}}路线规划</h1>
@@ -985,11 +1326,14 @@
   <script>
     const MAP_POINTS = {{MAP_POINTS_JSON}};
     const ROUTES = {{ROUTES_JSON}};
+    const FOODS = {{FOODS_JSON}};
     const AMAP_KEY = "{{AMAP_KEY}}";
     const AMAP_SECURITY_JS_CODE = "{{AMAP_SECURITY_JS_CODE}}";
     let map = null;
     let routeMap = null;
+    let foodMap = null;
     let routeMapInitialized = false;
+    let foodMapInitialized = false;
     let markerIndex = [];
 
     function showPage(pageName) {
@@ -1006,6 +1350,12 @@
         setTimeout(() => {
           if (routeMap) routeMap.resize();
           initRouteMap();
+        }, 120);
+      }
+      if (pageName === "foods") {
+        setTimeout(() => {
+          if (foodMap) foodMap.resize();
+          initFoodMap();
         }, 120);
       }
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1267,10 +1617,106 @@
       }
     }
 
+    function renderFoodFallback() {
+      const legend = document.getElementById("food-map-legend");
+      const mapNode = document.getElementById("food-map-container");
+      if (!FOODS || FOODS.length === 0) {
+        if (legend) legend.innerHTML = "<h3>美食地图</h3><div class='legend-item'>暂无美食数据</div>";
+        if (mapNode) mapNode.innerHTML = "<div class='map-fallback'>暂无美食推荐数据。</div>";
+        return;
+      }
+      const items = FOODS.map((food) => {
+        const isSnack = food.category === "snack";
+        const color = isSnack ? "#10b981" : "#ff6b35";
+        const icon = isSnack ? "🍜" : "🍽️";
+        return `
+        <div class="legend-item">
+          <span class="legend-color" style="background:${color}"></span>
+          <span>
+            <div class="legend-name">${icon} ${food.name || ""}</div>
+            <div class="legend-meta">${food.address || ""} ${food.rating ? '⭐' + food.rating : ''} ${food.avg_price ? '¥' + food.avg_price + '/人' : ''}</div>
+          </span>
+        </div>
+      `}).join("");
+      if (legend) legend.innerHTML = `<h3>美食地图</h3>${items}`;
+      const rows = FOODS.map((food) => {
+        const isSnack = food.category === "snack";
+        const icon = isSnack ? "🍜" : "🍽️";
+        return `<li>${icon} <strong>${food.name}</strong>：${food.address || ""} ${food.rating ? '⭐' + food.rating : ''} ${food.avg_price ? '¥' + food.avg_price + '/人' : ''}</li>`;
+      }).join("");
+      if (mapNode) mapNode.innerHTML = `<div class="map-fallback"><p>未启用实时高德地图，以下为已收集的美食信息。</p><ul>${rows}</ul></div>`;
+    }
+
+    function initFoodMap() {
+      if (foodMapInitialized) return;
+      const mapNode = document.getElementById("food-map-container");
+      if (!mapNode) return;
+      if (!AMAP_KEY || !window.AMap || !FOODS || FOODS.length === 0) {
+        renderFoodFallback();
+        foodMapInitialized = true;
+        return;
+      }
+      const firstFood = FOODS.find(f => f.lng && f.lat) || {};
+      const center = firstFood.lng ? [Number(firstFood.lng), Number(firstFood.lat)] : [116.397, 39.908];
+      mapNode.innerHTML = "";
+      const legendHtml = '<div class="legend" id="food-map-legend"><h3>美食地图</h3></div>';
+      mapNode.innerHTML = '<div class="map-fallback">美食地图加载中...</div>' + legendHtml;
+      const legend = document.getElementById("food-map-legend");
+      foodMap = new AMap.Map("food-map-container", {
+        zoom: 12,
+        center: center,
+        viewMode: "2D"
+      });
+      AMap.plugin(["AMap.ToolBar", "AMap.Scale"], function() {
+        foodMap.addControl(new AMap.ToolBar({ position: "RT" }));
+        foodMap.addControl(new AMap.Scale());
+      });
+      const markers = [];
+      const legendItems = [];
+      FOODS.forEach((food) => {
+        if (!food.lng || !food.lat) return;
+        const isSnack = food.category === "snack";
+        const color = isSnack ? "#10b981" : "#ff6b35";
+        const icon = isSnack ? "🍜" : "🍽️";
+        const label = isSnack ? "小吃" : "正餐";
+        const position = [Number(food.lng), Number(food.lat)];
+        const content = `<div style="background:${color};color:white;padding:4px 10px;border-radius:15px;font-size:12px;font-weight:bold;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.3);">${icon} ${food.name || ""}</div>`;
+        const marker = new AMap.Marker({
+          position: position,
+          title: food.name,
+          content: content,
+          offset: new AMap.Pixel(-30, -15)
+        });
+        const infoContent = `<div style="padding:10px;min-width:180px;">
+          <strong style="font-size:14px;">${icon} ${food.name || ""}</strong><br>
+          <span style="display:inline-block;background:${color};color:white;padding:2px 8px;border-radius:10px;font-size:11px;margin:4px 0;">${label}</span><br>
+          <span style="color:#667085;font-size:12px;">${food.address || ""}</span><br>
+          ${food.rating ? '<span style="color:#b45309;font-size:12px;">⭐ ' + food.rating + '</span>' : ''}
+          ${food.avg_price ? '<span style="color:#e74c3c;font-size:12px;margin-left:8px;">¥' + food.avg_price + '/人</span>' : ''}
+        </div>`;
+        const info = new AMap.InfoWindow({
+          content: infoContent,
+          offset: new AMap.Pixel(0, -30)
+        });
+        marker.on("click", () => info.open(foodMap, position));
+        foodMap.add(marker);
+        markers.push(marker);
+        legendItems.push(`<div class="legend-item"><span class="legend-color" style="background:${color}"></span><span><div class="legend-name">${icon} ${food.name || ""}</div><div class="legend-meta">${food.address || ""} ${food.rating ? '⭐' + food.rating : ''} ${food.avg_price ? '¥' + food.avg_price + '/人' : ''}</div></span></div>`);
+      });
+      if (legend) legend.innerHTML = `<h3>美食地图</h3><div style="margin-bottom:8px;font-size:12px;color:#667085;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#ff6b35;margin-right:4px;"></span>正餐 <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#10b981;margin-left:12px;margin-right:4px;"></span>小吃</div>${legendItems.join("") || "<div class='legend-item'>暂无美食数据</div>"}`;
+      if (markers.length) {
+        foodMap.setFitView(markers, false, [80, 80, 80, 80]);
+      }
+      foodMapInitialized = true;
+    }
+
     function initAllMaps() {
       initMap();
       if (document.getElementById("page-route")?.classList.contains("active")) {
         initRouteMap();
+      }
+      if (document.getElementById("page-foods")?.classList.contains("active")) {
+        initFoodMap();
       }
     }
 
@@ -1281,11 +1727,13 @@
       script.onerror = () => {
         renderFallbackMap();
         renderRouteFallback();
+        renderFoodFallback();
       };
       document.head.appendChild(script);
     } else {
       renderFallbackMap();
       renderRouteFallback();
+      renderFoodFallback();
     }
   </script>
 </body>

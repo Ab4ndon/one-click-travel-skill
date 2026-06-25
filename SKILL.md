@@ -15,6 +15,7 @@ Generate a self-contained, polished Chinese travel guide HTML page for a destina
 - `scripts/collect_attractions.py`: normalize attraction data from specialist skill output, web research, or user-provided JSON.
 - `scripts/collect_hotels.py`: normalize hotel data from specialist skill output, web research, or user-provided JSON.
 - `scripts/collect_routes.py`: build default day-by-day route data from normalized hotel and attraction coordinates.
+- `scripts/collect_weather.py`: fetch weather forecast from AMap Weather API and generate travel tips.
 - `scripts/geocode_amap.py`: fill coordinates using AMap geocoding when a key is available.
 - `scripts/generate_html.py`: render the final HTML page from normalized JSON and `assets/html-template/template.html`.
 - `scripts/deploy_edgeone.py`: deploy a generated HTML page to EdgeOne Pages with the local EdgeOne CLI when the user wants a shareable EdgeOne preview URL.
@@ -35,6 +36,7 @@ Extract from the user request:
 - `route_count` / `trip_days`: optional; default to 2-3 days based on available attractions.
 - `route_style`: optional; infer conservatively from the request when present, otherwise default to a first-visit practical route.
 - `amap_key` and optional `amap_security_js_code`: required by default for the live map experience. Ask the user for these before HTML generation unless they explicitly choose to skip the live map.
+- `amap_weather_key`: optional, a separate AMap Web Service API key for weather data. If not provided, the skill will attempt to use the main `amap_key` if it supports Web Service APIs.
 - Deployment preference: return the local HTML file by default, then ask whether to publish it to EdgeOne Pages with the local EdgeOne CLI. Do not require GitHub.
 
 Ask the user only for missing information that blocks the intended result. Missing `meituan-travel`, `rednote-skill`, Meituan Token, or Xiaohongshu login blocks generation until resolved.
@@ -47,10 +49,24 @@ For ordinary travel-guide requests, treat the map as part of the intended result
 https://console.amap.com/dev/key/app
 准备说明：
 https://lbs.amap.com/api/javascript-api-v2/guide/abc/prepare
-也可以回复“跳过地图”，我会先生成静态坐标版。
+也可以回复"跳过地图"，我会先生成静态坐标版。
 ```
 
 Continue without credentials only when the user says to skip, says they do not have a key, or explicitly asks for a draft/static version.
+
+## Weather Integration
+
+The skill automatically fetches weather forecasts for the destination using AMap Weather API. This requires a **Web Service API key** (different from the JS API key used for maps).
+
+If the user provides an `amap_key` that only supports JS API, the weather fetch will fail with `USERKEY_PLAT_NOMATCH`. In this case:
+1. Ask the user to create a separate Web Service key at https://console.amap.com/dev/key/app
+2. Or skip weather integration if the user prefers
+
+Weather data includes:
+- 3-day forecast (date, weather condition, temperature range, wind)
+- Automatic travel tips based on weather (e.g., "bring umbrella for rainy days")
+
+The weather section appears in the generated HTML between the map and hotel recommendations.
 
 ## Dependency Policy
 

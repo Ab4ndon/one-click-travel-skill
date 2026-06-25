@@ -117,6 +117,26 @@ Use this JSON shape between collection, geocoding, rendering, and deployment scr
     "center_lng": 114.16,
     "center_lat": 22.28,
     "zoom": 11
+  },
+  "weather": {
+    "city": "香港",
+    "province": "广东",
+    "report_time": "2026-06-25",
+    "forecasts": [
+      {
+        "date": "2026-06-25",
+        "week": "周四",
+        "day_weather": "多云",
+        "night_weather": "多云",
+        "day_temp": "32",
+        "night_temp": "26",
+        "day_wind_power": "3",
+        "night_wind_power": "2",
+        "day_wind_dir": "东南",
+        "night_wind_dir": "南"
+      }
+    ],
+    "tips": ["天气预报良好，适合户外活动"]
   }
 }
 ```

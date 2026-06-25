@@ -261,13 +261,32 @@ def point_type_label(value: Any) -> str:
     return labels.get(str(value or ""), "停靠")
 
 
-def routes_timeline_html(routes: list[dict[str, Any]]) -> str:
+def routes_timeline_html(routes: list[dict[str, Any]], weather_data: dict[str, Any] | None = None) -> str:
     if not routes:
         return "<div class=\"route-empty\">暂无可视化路线。补充酒店和景点坐标后会自动生成。</div>"
+    
+    weather_icons = {
+        "晴": "☀️", "多云": "⛅", "阴": "☁️",
+        "小雨": "🌦️", "中雨": "🌧️", "大雨": "🌧️", "暴雨": "⛈️",
+        "雷阵雨": "⛈️", "阵雨": "🌦️",
+        "小雪": "🌨️", "中雪": "🌨️", "大雪": "❄️",
+        "雾": "🌫️", "霾": "😷",
+    }
+    forecasts = (weather_data or {}).get("forecasts", [])
+    
     blocks = []
     for route in routes:
         day = int(route.get("day") or len(blocks) + 1)
         points = route.get("points") or []
+        
+        # 获取当天天气
+        weather_line = ""
+        if day - 1 < len(forecasts):
+            fc = forecasts[day - 1]
+            icon = weather_icons.get(fc.get("day_weather", ""), "🌤️")
+            temp = f"{fc.get('night_temp', '')}°C ~ {fc.get('day_temp', '')}°C"
+            weather_line = f'<div class="route-day-weather">{icon} {esc(fc.get("day_weather", ""))} {esc(temp)}</div>'
+        
         items = []
         for index, point in enumerate(points, start=1):
             transport = transport_label(point.get("transport"))
@@ -320,6 +339,7 @@ def routes_timeline_html(routes: list[dict[str, Any]]) -> str:
             f"""
             <section class="route-day-section day{day}">
               <div class="route-day-title">Day {day}：{esc(route.get('title') or f'Day {day}')}</div>
+              {weather_line}
               <div class="route-day-summary">{esc(route.get('summary') or '')}</div>
               <div class="route-timeline">{"".join(items)}</div>
             </section>
@@ -395,6 +415,167 @@ def trip_notes_html(notes: list[str]) -> str:
     return "".join(f"<li>{esc(note)}</li>" for note in notes)
 
 
+def weather_html(weather_data: dict[str, Any]) -> str:
+    """Generate weather forecast HTML section."""
+    if not weather_data or "error" in weather_data:
+        return ""
+
+    forecasts = weather_data.get("forecasts", [])
+    if not forecasts:
+        return ""
+
+    city = weather_data.get("city", "")
+    tips = weather_data.get("tips", [])
+
+    # Weather icon mapping
+    weather_icons = {
+        "晴": "☀️", "多云": "⛅", "阴": "☁️",
+        "小雨": "🌦️", "中雨": "🌧️", "大雨": "🌧️", "暴雨": "⛈️",
+        "雷阵雨": "⛈️", "阵雨": "🌦️",
+        "小雪": "🌨️", "中雪": "🌨️", "大雪": "❄️",
+        "雾": "🌫️", "霾": "😷",
+    }
+
+    cards = []
+    for day in forecasts:
+        date = day.get("date", "")
+        week = day.get("week", "")
+        day_weather = day.get("day_weather", "")
+        night_weather = day.get("night_weather", "")
+        day_temp = day.get("day_temp", "")
+        night_temp = day.get("night_temp", "")
+
+        icon = weather_icons.get(day_weather, "🌤️")
+        temp_range = f"{night_temp}°C ~ {day_temp}°C" if day_temp and night_temp else ""
+
+        cards.append(f"""
+        <div class="weather-card">
+          <div class="weather-date">
+            <div class="weather-date-text">{esc(date)}</div>
+            <div class="weather-week">{esc(week)}</div>
+          </div>
+          <div class="weather-icon">{icon}</div>
+          <div class="weather-info">
+            <div class="weather-condition">{esc(day_weather)} / {esc(night_weather)}</div>
+            <div class="weather-temp">{esc(temp_range)}</div>
+          </div>
+        </div>
+        """)
+
+    tips_html = ""
+    if tips:
+        tips_html = f"""
+        <div class="weather-tips">
+          <div class="weather-tips-title">🎯 出行建议</div>
+          <ul class="weather-tips-list">
+            {"".join(f"<li>{esc(tip)}</li>" for tip in tips)}
+          </ul>
+        </div>
+        """
+
+    return f"""
+    <div class="weather-section">
+      <div class="weather-header">
+        <h2 class="weather-title">🌤️ {esc(city)}天气预报</h2>
+      </div>
+      <div class="weather-cards">
+        {"".join(cards)}
+      </div>
+      {tips_html}
+    </div>
+    """
+
+
+def route_weather_html(data: dict[str, Any]) -> str:
+    """Generate per-day weather summary for the route planning page."""
+    weather_data = data.get("weather", {})
+    if not weather_data or "error" in weather_data:
+        return ""
+    forecasts = weather_data.get("forecasts", [])
+    if not forecasts:
+        return ""
+    routes = normalized_routes(data)
+    if not routes:
+        return ""
+
+    weather_icons = {
+        "晴": "☀️", "多云": "⛅", "阴": "☁️",
+        "小雨": "🌦️", "中雨": "🌧️", "大雨": "🌧️", "暴雨": "⛈️",
+        "雷阵雨": "⛈️", "阵雨": "🌦️",
+        "小雪": "🌨️", "中雪": "🌨️", "大雪": "❄️",
+        "雾": "🌫️", "霾": "😷",
+    }
+
+    rain_keywords = ["雨", "雷", "阵雨", "小雨", "中雨", "大雨", "暴雨"]
+
+    day_bars = []
+    for index, route in enumerate(routes):
+        day = int(route.get("day") or index + 1)
+        title = route.get("title") or f"Day {day}"
+        color = route.get("color") or DAY_COLORS[(day - 1) % len(DAY_COLORS)]
+
+        if index < len(forecasts):
+            fc = forecasts[index]
+            day_weather = fc.get("day_weather", "")
+            night_weather = fc.get("night_weather", "")
+            day_temp = fc.get("day_temp", "")
+            night_temp = fc.get("night_temp", "")
+            icon = weather_icons.get(day_weather, "🌤️")
+            temp_range = f"{night_temp}°C ~ {day_temp}°C" if day_temp and night_temp else ""
+            is_rainy = any(kw in day_weather or kw in night_weather for kw in rain_keywords)
+
+            try:
+                temp_val = int(day_temp)
+            except (ValueError, TypeError):
+                temp_val = 20
+
+            if is_rainy:
+                weather_advice = "有雨，建议携带雨具，优先安排室内景点"
+            elif temp_val >= 35:
+                weather_advice = "气温较高，注意防晒补水"
+            elif temp_val <= 5:
+                weather_advice = "气温较低，注意保暖"
+            else:
+                weather_advice = "天气适宜户外活动"
+
+            bar = f"""
+            <div class="route-weather-day" style="border-left-color: {esc(color)};">
+              <div class="route-weather-day-header">
+                <span class="route-weather-day-label">Day {day}</span>
+                <span class="route-weather-day-title">{esc(title)}</span>
+              </div>
+              <div class="route-weather-day-body">
+                <span class="route-weather-icon">{icon}</span>
+                <span class="route-weather-condition">{esc(day_weather)} / {esc(night_weather)}</span>
+                <span class="route-weather-temp">{esc(temp_range)}</span>
+                <span class="route-weather-advice">{esc(weather_advice)}</span>
+              </div>
+            </div>
+            """
+        else:
+            bar = f"""
+            <div class="route-weather-day" style="border-left-color: {esc(color)};">
+              <div class="route-weather-day-header">
+                <span class="route-weather-day-label">Day {day}</span>
+                <span class="route-weather-day-title">{esc(title)}</span>
+              </div>
+              <div class="route-weather-day-body">
+                <span class="route-weather-condition">暂无天气数据</span>
+              </div>
+            </div>
+            """
+        day_bars.append(bar)
+
+    return f"""
+    <div class="route-weather-section">
+      <div class="route-weather-title">🌤️ 各日天气概览</div>
+      <div class="route-weather-days">
+        {"".join(day_bars)}
+      </div>
+    </div>
+    """
+
+
 def render(data: dict[str, Any], template: str) -> str:
     trip = data.get("trip", {})
     destination = trip.get("destination", "目的地")
@@ -411,6 +592,8 @@ def render(data: dict[str, Any], template: str) -> str:
     amap_key = map_cfg.get("amap_key", "")
     amap_security = map_cfg.get("amap_security_js_code", "")
     routes = normalized_routes(data)
+    weather_section = weather_html(data.get("weather", {}))
+    weather_data = data.get("weather", {})
     return (
         template.replace("{{TITLE}}", esc(title))
         .replace("{{DESTINATION}}", esc(destination))
@@ -420,7 +603,7 @@ def render(data: dict[str, Any], template: str) -> str:
         .replace("{{CHECKOUT_DATE}}", esc(trip.get("hotel_checkout_date", "")))
         .replace("{{UPDATED_AT}}", esc(updated_at))
         .replace("{{TRIP_NOTES}}", trip_notes_html(trip.get("notes") or []))
-        .replace("{{ROUTE_TIMELINE}}", routes_timeline_html(routes))
+        .replace("{{ROUTE_TIMELINE}}", routes_timeline_html(routes, weather_data))
         .replace("{{ROUTES_JSON}}", html.escape(json.dumps(routes, ensure_ascii=False), quote=False))
         .replace("{{ATTRACTIONS}}", "\n".join(attraction_card(item, index) for index, item in enumerate(data.get("attractions", []), start=1)))
         .replace("{{HOTELS}}", "\n".join(hotel_card(item) for item in data.get("hotels", [])))
@@ -428,6 +611,8 @@ def render(data: dict[str, Any], template: str) -> str:
         .replace("{{MAP_POINTS_JSON}}", html.escape(map_data(data), quote=False))
         .replace("{{AMAP_KEY}}", esc(amap_key))
         .replace("{{AMAP_SECURITY_JS_CODE}}", esc(amap_security))
+        .replace("{{WEATHER_SECTION}}", weather_section)
+        .replace("{{ROUTE_WEATHER}}", route_weather_html(data))
     )
 
 
